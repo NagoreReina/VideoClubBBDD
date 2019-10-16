@@ -4,7 +4,7 @@ using System.Text;
 
 namespace VideoClub
 {
-    class Alquiler
+    class Alquiler:BBDD
     {
         public int Id { get; set; }
         public int IdUsuario { get; set; }
