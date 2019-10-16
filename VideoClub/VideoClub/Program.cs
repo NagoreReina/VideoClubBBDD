@@ -4,6 +4,7 @@ namespace VideoClub
 {
     class Program
     {
+        static Usuario usuario = new Usuario();
         static void Main(string[] args)
         {
             MenuInicial();
@@ -17,7 +18,6 @@ namespace VideoClub
                 Console.WriteLine("\n.-_-_-_ VIDEOCLUB REINA _-_-_-.\nBienvenido, ¿Qué quieres hacer?\n-------------------------------\n\t1.Registrarme\n\t2.Entrar\n\t3.Salir");
                 Console.ForegroundColor = ConsoleColor.White;
                 bool opcionValida = false;
-                Usuario nuevo = new Usuario();
                 do
                 {
                     int opcion = IntroducirOpcion();
@@ -25,7 +25,7 @@ namespace VideoClub
                     {
                         case 1:
                             //registro
-                            if (nuevo.Registrarse())
+                            if (usuario.Registrarse())
                             {
                                 Console.ForegroundColor = ConsoleColor.Green;
                                 Console.WriteLine("Registro completado correctamente");
@@ -35,11 +35,11 @@ namespace VideoClub
                             break;
                         case 2:
                             //loggin
-                            nuevo = new Usuario();
+                            usuario = new Usuario();
                             bool salirDelLoggin = false;
                             do
                             {
-                                if (nuevo.Loguearse())
+                                if (usuario.Loguearse())
                                 {
                                     Console.ForegroundColor = ConsoleColor.Green;
                                     Console.WriteLine("Te has conectado correctamente");
@@ -104,7 +104,36 @@ namespace VideoClub
         }
         public static void MenuUsuario()
         {
+            do
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"\n.-_-_-_ VIDEOCLUB REINA _-_-_-.\nBienvenido {usuario.Nombre}, ¿Qué quieres hacer?\n-------------------------------\n\t1. Ver cartelera de Peliculas\n\t2. Alquilar Pelicula \n\t3.Mis Alquileres \n\t4.Salir");
+                //AQUIIIIIIIIIIIIIIIIII
+                bool opcionValida = false;
+                do
+                {
+                    int opcion = IntroducirOpcion();
+                    switch (opcion)
+                    {
+                        case 1:
 
+                            break;
+                        case 2:
+
+                            break;
+
+                        case 3:
+                            break;
+
+                        case 4:
+
+                            break;
+                        default:
+
+                            break;
+                    }
+                } while (!opcionValida);
+            } while (true);
         }
         public static int IntroducirOpcion() //funcion que comprueba se repite hasta que el usuario introduce un numero
         {

@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Text;
+
 
 namespace VideoClub
 {
-    class Usuario : BBDD
+    class Usuario 
     {
+        //CONEXION CON LA BASE DE DATOS
+        static SqlConnection connection = new SqlConnection("Data Source=DESKTOP-C1JLP92\\SQLEXPRESS;Initial Catalog=VideoClub;Integrated Security=True");
         public int Id { get; set; }
         public string Nombre { get; set; }
         public string Apellido { get; set; }
@@ -36,9 +40,9 @@ namespace VideoClub
 
                 if (Email.Contains("@") && (Email.Contains(".com") || Email.Contains(".es"))) //comprobación basica para saber si es un email
                 {
-                    Query = $"SELECT * FROM Usuarios WHERE Email LIKE '{Email}'";
+                    string query = $"SELECT * FROM Usuarios WHERE Email LIKE '{Email}'";
 
-                    if (!ConsultarBase()) //si no existe, se puede registrar
+                    if (!ConsultarBase(query)) //si no existe, se puede registrar
                     {
                         //NOMBRE
                         Console.ForegroundColor = ConsoleColor.Yellow;
@@ -70,7 +74,7 @@ namespace VideoClub
                                         fechaCorrecta = true;
                                     }
                                     else
-                                    {
+                                    { //ERROR POR FECHA MAL INTRODUCIDA
                                         Console.ForegroundColor = ConsoleColor.Red;
                                         Console.WriteLine("ERROR: La fecha introducida no es valida");
                                         Console.ForegroundColor = ConsoleColor.White;
@@ -78,6 +82,7 @@ namespace VideoClub
                                 }
                                 catch (FormatException)
                                 {
+                                    //ERROR POR FECHA MAL INTRODUCIDA
                                     Console.ForegroundColor = ConsoleColor.Red;
                                     Console.WriteLine("ERROR: No has introducido un formato de fecha correcto");
                                     Console.ForegroundColor = ConsoleColor.White;
@@ -87,6 +92,7 @@ namespace VideoClub
                             }
                             else
                             {
+                                //ERROR POR NO INTRODUCIR UNA FECHA
                                 Console.ForegroundColor = ConsoleColor.Red;
                                 Console.WriteLine("ERROR: No has introducido una fecha");
                                 Console.ForegroundColor = ConsoleColor.White;
@@ -117,8 +123,8 @@ namespace VideoClub
                                 //introducirlos en la base de datos
                                 DateTime tempDate = Convert.ToDateTime(FechaNacimiento);
                                 tempDate.ToString("MM/dd/yyyy");
-                                Query = $"INSERT INTO Usuarios(Nombre, Apellido, FechaNacimiento, Email, Contrasena) VALUES ('{Nombre}','{Apellido}','{tempDate.Month}/{tempDate.Day}/{tempDate.Year}','{Email}','{Contrasena}')";
-                                ModificarBase();
+                                query = $"INSERT INTO Usuarios(Nombre, Apellido, FechaNacimiento, Email, Contrasena) VALUES ('{Nombre}','{Apellido}','{tempDate.Month}/{tempDate.Day}/{tempDate.Year}','{Email}','{Contrasena}')";
+                                ModificarBase(query);
                                 return true;
                             }
                             else if (opcion == "NO")
@@ -127,7 +133,7 @@ namespace VideoClub
                                 Console.ForegroundColor = ConsoleColor.Yellow;
                                 Console.WriteLine("¿Quieres modificarlos o quieres salir? ");
                                 Console.ForegroundColor = ConsoleColor.Blue;
-                                Console.WriteLine("(Introduce M para Modificar / S para salir)");
+                                Console.WriteLine("(Pulsa cualquier tecla para Modificar / introduce S para salir)");
                                 Console.ForegroundColor = ConsoleColor.White;
                                 opcion = Console.ReadLine().ToUpper();
                                 if (opcion == "S")
@@ -182,6 +188,43 @@ namespace VideoClub
         }
         public bool Loguearse()
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Introduce tu Email");
+            Console.ForegroundColor = ConsoleColor.White;
+            Email = IntroducirTextoYComprobarLongitud(100);
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Introduce tu Contraseña");
+            Console.BackgroundColor = ConsoleColor.White;
+            Contrasena = IntroducirTextoYComprobarLongitud(25);
+            Console.BackgroundColor = ConsoleColor.Black;
+            string query = $"SELECT * FROM Usuarios WHERE Email Like '{Email}' AND Contrasena Like '{Contrasena}'";
+            if (ConsultarBase(query)) //AQUI
+            {
+                try
+                {
+                    SqlCommand command = new SqlCommand(query, connection);
+                    connection.Open();
+                    SqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        Id = Convert.ToInt32(reader[0].ToString());
+                        Nombre = reader[1].ToString();
+                        Apellido = reader[2].ToString();
+                        FechaNacimiento = reader[3].ToString();
+                        Email = reader[4].ToString();
+                        Contrasena = reader[5].ToString();
+                        return true;
+                    }
+                    connection.Close();
+                }
+                catch (Exception)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("ERROR: NO SE HA PODIDO CONSULTAR LA BASE DE DATOS");
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                
+            }
             return false;
         }
         public void MostrarDatos()
@@ -194,6 +237,49 @@ namespace VideoClub
             Console.WriteLine($"Fecha Nacimiento: {FechaNacimiento}");
             Console.WriteLine($"Contraseña: {Contrasena}");
             Console.WriteLine("- - - - - - - - - - -");
+        }
+        //Función para hacer consultas con la base de datos
+        public bool ConsultarBase(string query)
+        {
+            try
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+                SqlDataReader reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    connection.Close();
+                    return true;
+                }
+                connection.Close();
+            }
+            catch (Exception)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("ERROR: NO SE HA PODIDO CONSULTAR LA BASE DE DATOS");
+                Console.ForegroundColor = ConsoleColor.White;
+            }
+            return false;
+
+        }
+
+        //funcion para modificar en la base de datos
+        public void ModificarBase(string query)
+        {
+            try
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
+            catch (Exception)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("ERROR: NO SE HA PODIDO MODIFICAR LA BASE DE DATOS");
+                Console.ForegroundColor = ConsoleColor.White;
+            }
+
         }
     }
 }
