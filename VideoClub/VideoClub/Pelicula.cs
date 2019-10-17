@@ -15,13 +15,34 @@ namespace VideoClub
         public string Disponible { get; set; }
         public int EdadRecomendada { get; set; }
 
-        public Pelicula(string nombre, string descripcion, string disponible, int edadRecomendada)
+        public Pelicula(int id, string nombre, string descripcion, string disponible, int edadRecomendada)
         {
+            Id = id;
             Nombre = nombre;
             Descripcion = descripcion;
             Disponible = disponible;
             EdadRecomendada = edadRecomendada;
         }
+        public Pelicula()
+        {
+
+        }
+
+        public List<Pelicula> AlmacenarPeliculas()
+        {
+            string query = $"SELECT * FROM Peliculas";
+            SqlCommand command = new SqlCommand(query, connection);
+            connection.Open();
+            SqlDataReader reader = command.ExecuteReader();
+            List<Pelicula> tempList = new List<Pelicula>();
+            while (reader.Read())
+            {
+                tempList.Add(new Pelicula(Convert.ToInt32(reader[0].ToString()), reader[1].ToString(), reader[2].ToString(),reader[3].ToString(), Convert.ToInt32(reader[4].ToString())));
+            }
+            connection.Close();
+            return tempList;
+        }
+
         //Función para hacer consultas con la base de datos
         public bool ConsultarBase(string query)
         {
@@ -65,5 +86,6 @@ namespace VideoClub
             }
 
         }
+
     }
 }

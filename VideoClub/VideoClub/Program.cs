@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace VideoClub
 {
     class Program
     {
         static Usuario usuario = new Usuario();
+        static Pelicula pelicula = new Pelicula();
+        static Alquiler alquiler = new Alquiler();
+        static List<Pelicula> peliculas = pelicula.AlmacenarPeliculas();
         static void Main(string[] args)
         {
             MenuInicial();
@@ -15,7 +19,7 @@ namespace VideoClub
             do
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("\n.-_-_-_ VIDEOCLUB REINA _-_-_-.\nBienvenido, ¿Qué quieres hacer?\n-------------------------------\n\t1.Registrarme\n\t2.Entrar\n\t3.Salir");
+                Console.WriteLine("\n.-_-_-_ VIDEOCLUB REINA _-_-_-.\nBienvenid@, ¿Qué quieres hacer?\n-------------------------------\n\t1.Registrarme\n\t2.Entrar\n\t3.Salir");
                 Console.ForegroundColor = ConsoleColor.White;
                 bool opcionValida = false;
                 do
@@ -46,6 +50,7 @@ namespace VideoClub
                                     Console.ForegroundColor = ConsoleColor.White;
                                     MenuUsuario();
                                     opcionValida = true;
+                                    salirDelLoggin = true;
                                 }
                                 else
                                 {
@@ -104,36 +109,210 @@ namespace VideoClub
         }
         public static void MenuUsuario()
         {
+            bool salirDelMenu = false;
+            List<Pelicula> peliculasRecomendadas = GenerarPeliculasRecomendadas();
             do
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine($"\n.-_-_-_ VIDEOCLUB REINA _-_-_-.\nBienvenido {usuario.Nombre}, ¿Qué quieres hacer?\n-------------------------------\n\t1. Ver cartelera de Peliculas\n\t2. Alquilar Pelicula \n\t3.Mis Alquileres \n\t4.Salir");
-                //AQUIIIIIIIIIIIIIIIIII
-                bool opcionValida = false;
-                do
+                Console.WriteLine($"\n.-_-_-_ VIDEOCLUB REINA _-_-_-.\nBienvenid@ {usuario.Nombre}, ¿Qué quieres hacer?\n-------------------------------\n\t1. Ver cartelera de Peliculas\n\t2. Alquilar Pelicula \n\t3.Mis Alquileres \n\t4.Salir");
+                int opcion = IntroducirOpcion();
+                switch (opcion)
                 {
-                    int opcion = IntroducirOpcion();
-                    switch (opcion)
-                    {
-                        case 1:
+                    case 1:
+                        //ACCEDER A LAS PELICULAS DISPONIBLES
+                        Console.WriteLine("--------------------------------------------");
+                        foreach (Pelicula pelicula in peliculasRecomendadas)
+                        {
+                            Console.WriteLine($"{pelicula.Id} - {pelicula.Nombre} \nDisponible: {pelicula.Disponible}");
+                            Console.WriteLine("--------------------------------------------");
+                            
+                        }
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine("¿Quieres mas información de alguna? (introduce el numero de la pelicula de la que quieres más información, o -1 para salir)");
+                        int seleccion = IntroducirOpcion();
+                        if (seleccion > 0)
+                        {
+                            bool peliculaCorrecta = true;
+                            for (int i = 0; i <= peliculasRecomendadas.Count; i++)
+                            {
+                                if (i == peliculasRecomendadas.Count)
+                                {
+                                    peliculaCorrecta = false;
+                                }
+                                else
+                                {
+                                    if (seleccion == peliculasRecomendadas[i].Id)
+                                    {
+                                        Console.WriteLine("--------------------------------------------");
+                                        Console.WriteLine($"{peliculasRecomendadas[i].Id} - {peliculasRecomendadas[i].Nombre} \nDisponible: {peliculasRecomendadas[i].Disponible} \nDescripción: \n{peliculasRecomendadas[i].Descripcion}");
+                                        Console.WriteLine("--------------------------------------------");
+                                        i = peliculasRecomendadas.Count;
+                                    }
+                                }
+                            }
+                            if (!peliculaCorrecta)
+                            {
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("ERROR: Esa pelicula no existe");
+                                Console.ForegroundColor = ConsoleColor.White;
+                            }
+                        }
+                        break;
+                    case 2:
+                        //CREAR UN NUEVO ALQUILER
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine("¿Qué pelicula quieres alquilar? (Introduce el nº de la pelicula que quieres alquilar)");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        seleccion = IntroducirOpcion();
+                        bool alquilerRealizado = false;
+                        bool noExistePelicula = false;
+                        for (int i = 0; i <= peliculasRecomendadas.Count; i++)
+                        {
+                            if (i == peliculasRecomendadas.Count)
+                            {
+                                noExistePelicula = true;
+                            }
+                            else
+                            {
+                                if (seleccion == peliculasRecomendadas[i].Id && peliculasRecomendadas[i].Disponible == "SI")
+                                {
+                                    alquilerRealizado = alquiler.GenerarAlquiler(usuario.Id, peliculasRecomendadas[i].Id);
+                                    peliculasRecomendadas[i].ModificarBase($"UPDATE Peliculas Set Disponible = 'NO' WHERE Id = {peliculasRecomendadas[i].Id}");
+                                    peliculas = pelicula.AlmacenarPeliculas();
+                                    peliculasRecomendadas = GenerarPeliculasRecomendadas();
 
-                            break;
-                        case 2:
+                                    i = peliculasRecomendadas.Count;
+                                }
+                            }
+                        }
+                        if (noExistePelicula)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("ERROR: Esa pelicula no existe o no esta disponible");
+                            Console.ForegroundColor = ConsoleColor.White;
+                        }
+                        else
+                        {
+                            if (alquilerRealizado)
+                            {
+                                Console.ForegroundColor = ConsoleColor.Magenta;
+                                Console.WriteLine("La pelicula está alquilada durante 2 dias, puedes ver la información en Mis Alquileres, Gracias");
+                                Console.ForegroundColor = ConsoleColor.White;
+                            }
+                        }
+                        
+                        break;
 
-                            break;
+                    case 3:
+                        //ACCEDER A LOS ALQUILERES DEL USUARIO
+                        bool salirDeMisAlquileres = false;
+                        do
+                        {
+                            Console.ForegroundColor = ConsoleColor.Yellow;
 
-                        case 3:
-                            break;
+                            Console.WriteLine($"\n.______Mis Alquileres______.\n");
+                            List<Alquiler> alquileresUsuario = alquiler.AlquileresDeUsuario(usuario.Id);
+                            if (alquileresUsuario.Count > 0)
+                            {
+                                foreach (Alquiler alquiler in alquileresUsuario)
+                                {
+                                    string nombrePelicula = "";
+                                    if (alquiler.Devuelta == "NO")
+                                    {
+                                        foreach (Pelicula pelicula in peliculas)
+                                        {
+                                            if (pelicula.Id == alquiler.IdPelicula)
+                                            {
+                                                nombrePelicula = pelicula.Nombre;
+                                            }
+                                        }
+                                        DateTime fechaEntrega = Convert.ToDateTime(alquiler.FechaAlquiler).AddDays(2);
+                                        if (fechaEntrega < DateTime.Today)
+                                        {
+                                            Console.ForegroundColor = ConsoleColor.Red;
+                                            Console.WriteLine($"Nº {alquiler.Id} Nombre: {nombrePelicula} Fecha Alquiler: {Convert.ToDateTime(alquiler.FechaAlquiler).ToString("dd/MM/yyyy")} Fecha Limite: {Convert.ToDateTime(fechaEntrega).ToString("dd/MM/yyyy")}");
+                                            Console.ForegroundColor = ConsoleColor.White;
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine($"Nº {alquiler.Id} Nombre: {nombrePelicula} Fecha Alquiler: {alquiler.FechaAlquiler} Fecha Limite: {fechaEntrega}");
+                                        }
+                                        
+                                    }
 
-                        case 4:
+                                }
+                            }
+                            Console.WriteLine($"\n¿Qué quieres hacer, {usuario.Nombre}?\n-------------------------------\n\t1. Devolver una pelicula\n\t2. Salir");
+                            opcion = IntroducirOpcion();
+                            if (alquileresUsuario.Count == 0 && opcion == 1)
+                            {
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("ERROR: No tienes peliculas alquiladas");
+                                Console.ForegroundColor = ConsoleColor.White;
+                            }
+                            else
+                            {
+                                switch (opcion)
+                                {
+                                    case 1:
+                                        Console.ForegroundColor = ConsoleColor.Yellow;
+                                        Console.WriteLine($"¿Qué pelicula quieres devolver? (introduce su número)");
+                                        opcion = IntroducirOpcion();
+                                        bool seEncontroAlquiler = false;
+                                        for (int i = 0; i < alquileresUsuario.Count; i++)
+                                        {
+                                            if (alquileresUsuario[i].Id == opcion)
+                                            {
+                                                seEncontroAlquiler = true;
+                                                pelicula.ModificarBase($"UPDATE Peliculas Set Disponible = 'SI' WHERE Id = {alquileresUsuario[i].IdPelicula}");
+                                                i = alquileresUsuario.Count;
+                                            }
+                                        }
+                                        if (seEncontroAlquiler)
+                                        {
+                                            //DEVOLVER
+                                            alquiler.DevolverPelicula(opcion);
+                                            Console.ForegroundColor = ConsoleColor.Magenta;
+                                            Console.WriteLine("La pelicula está devuelta, esperamos que la hayas disfrutado, Gracias");
+                                            Console.ForegroundColor = ConsoleColor.White;
+                                            peliculas = pelicula.AlmacenarPeliculas();
+                                            peliculasRecomendadas = GenerarPeliculasRecomendadas();
+                                        }
+                                        else
+                                        {
+                                            Console.ForegroundColor = ConsoleColor.Red;
+                                            Console.WriteLine("ERROR: Esa pelicula no está entre tus alquileres");
+                                            Console.ForegroundColor = ConsoleColor.White;
+                                        }
 
-                            break;
-                        default:
+                                        break;
+                                        case 2:
+                                        salirDeMisAlquileres = true;
+                                        break;
+                                    default:
+                                        Console.ForegroundColor = ConsoleColor.Red;
+                                        Console.WriteLine("ERROR: Esa opción no existe");
+                                        Console.ForegroundColor = ConsoleColor.White;
+                                        break;
+                                }
+                            }
+                        } while (!salirDeMisAlquileres);
+                        break;
 
-                            break;
-                    }
-                } while (!opcionValida);
-            } while (true);
+                    case 4:
+                        salirDelMenu = true;
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine($"Gracias por tu visita {usuario.Nombre}, esperamos verte pronto");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        break;
+                    default:
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("ERROR: Esa opción no existe");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        break;
+                }
+            } while (!salirDelMenu);
+
         }
         public static int IntroducirOpcion() //funcion que comprueba se repite hasta que el usuario introduce un numero
         {
@@ -156,6 +335,21 @@ namespace VideoClub
                 
             } while (true);
 
+        }
+        public static List<Pelicula> GenerarPeliculasRecomendadas()
+        {
+            List<Pelicula> peliculasRecomendadas = new List<Pelicula>();
+            TimeSpan ts = (DateTime.Today - Convert.ToDateTime(usuario.FechaNacimiento));
+            DateTime zeroTime = new DateTime(1, 1, 1);
+            int edad = (zeroTime + ts).Year - 1;
+            for (int i = 0; i < peliculas.Count; i++)
+            {
+                if (peliculas[i].EdadRecomendada <= edad)
+                {
+                    peliculasRecomendadas.Add(peliculas[i]);
+                }
+            }
+            return peliculasRecomendadas;
         }
     }
 }

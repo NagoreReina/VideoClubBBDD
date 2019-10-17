@@ -198,7 +198,7 @@ namespace VideoClub
             Contrasena = IntroducirTextoYComprobarLongitud(25);
             Console.BackgroundColor = ConsoleColor.Black;
             string query = $"SELECT * FROM Usuarios WHERE Email Like '{Email}' AND Contrasena Like '{Contrasena}'";
-            if (ConsultarBase(query)) //AQUI
+            if (ConsultarBase(query)) 
             {
                 try
                 {
@@ -243,7 +243,9 @@ namespace VideoClub
         {
             try
             {
+                
                 SqlCommand command = new SqlCommand(query, connection);
+                connection.Close();
                 connection.Open();
                 SqlDataReader reader = command.ExecuteReader();
                 if (reader.Read())
