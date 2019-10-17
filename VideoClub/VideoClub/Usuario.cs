@@ -6,7 +6,7 @@ using System.Text;
 
 namespace VideoClub
 {
-    class Usuario 
+    class Usuario : IConsultasYModificaciones
     {
         //CONEXION CON LA BASE DE DATOS
         static SqlConnection connection = new SqlConnection("Data Source=DESKTOP-C1JLP92\\SQLEXPRESS;Initial Catalog=VideoClub;Integrated Security=True");
