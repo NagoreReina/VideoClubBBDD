@@ -174,10 +174,18 @@ namespace VideoClub
                             }
                             else
                             {
-                                if (seleccion == peliculasRecomendadas[i].Id && peliculasRecomendadas[i].Disponible == "SI")
+                                if (seleccion == peliculasRecomendadas[i].Id && peliculasRecomendadas[i].Disponible == "SI" && peliculasRecomendadas[i].Stock > 0)
                                 {
                                     alquilerRealizado = alquiler.GenerarAlquiler(usuario.Id, peliculasRecomendadas[i].Id);
-                                    peliculasRecomendadas[i].ModificarBase($"UPDATE Peliculas Set Disponible = 'NO' WHERE Id = {peliculasRecomendadas[i].Id}");
+                                    if (peliculasRecomendadas[i].Stock -1 <= 0)
+                                    {
+                                        peliculasRecomendadas[i].ModificarBase($"UPDATE Peliculas SET Disponible = 'NO', Stock = {peliculasRecomendadas[i].Stock - 1} WHERE Id = {peliculasRecomendadas[i].Id}");
+                                    }
+                                    else
+                                    {
+                                        peliculasRecomendadas[i].ModificarBase($"UPDATE Peliculas SET Stock = {peliculasRecomendadas[i].Stock - 1} WHERE Id = {peliculasRecomendadas[i].Id}");
+                                    }
+                                    
                                     peliculas = pelicula.AlmacenarPeliculas();
                                     peliculasRecomendadas = GenerarPeliculasRecomendadas();
 
@@ -235,7 +243,7 @@ namespace VideoClub
                                         }
                                         else
                                         {
-                                            Console.WriteLine($"Nº {alquiler.Id} Nombre: {nombrePelicula} Fecha Alquiler: {alquiler.FechaAlquiler} Fecha Limite: {fechaEntrega}");
+                                            Console.WriteLine($"Nº {alquiler.Id} Nombre: {nombrePelicula} Fecha Alquiler: {Convert.ToDateTime(alquiler.FechaAlquiler).ToString("dd/MM/yyyy")} Fecha Limite: {Convert.ToDateTime(fechaEntrega).ToString("dd/MM/yyyy")}");
                                         }
                                         
                                     }
@@ -264,7 +272,16 @@ namespace VideoClub
                                             if (alquileresUsuario[i].Id == opcion)
                                             {
                                                 seEncontroAlquiler = true;
-                                                pelicula.ModificarBase($"UPDATE Peliculas Set Disponible = 'SI' WHERE Id = {alquileresUsuario[i].IdPelicula}");
+                                                Pelicula peliculaADevolver = new Pelicula();
+                                                //SUMAR EL STOCK------------------------------------------------------------------------------------------------------------
+                                                foreach (Pelicula pelicula in peliculas)
+                                                {
+                                                    if (alquileresUsuario[i].IdPelicula == pelicula.Id)
+                                                    {
+                                                        peliculaADevolver = pelicula;
+                                                    }
+                                                }
+                                                pelicula.ModificarBase($"UPDATE Peliculas Set Disponible = 'SI', Stock = {peliculaADevolver.Stock +1} WHERE Id = {alquileresUsuario[i].IdPelicula}");
                                                 i = alquileresUsuario.Count;
                                             }
                                         }

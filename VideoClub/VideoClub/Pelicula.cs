@@ -14,14 +14,16 @@ namespace VideoClub
         public string Descripcion { get; set; }
         public string Disponible { get; set; }
         public int EdadRecomendada { get; set; }
+        public int Stock { get; set; }
 
-        public Pelicula(int id, string nombre, string descripcion, string disponible, int edadRecomendada)
+        public Pelicula(int id, string nombre, string descripcion, string disponible, int edadRecomendada, int stock)
         {
             Id = id;
             Nombre = nombre;
             Descripcion = descripcion;
             Disponible = disponible;
             EdadRecomendada = edadRecomendada;
+            Stock = stock;
         }
         public Pelicula()
         {
@@ -32,12 +34,13 @@ namespace VideoClub
         {
             string query = $"SELECT * FROM Peliculas";
             SqlCommand command = new SqlCommand(query, connection);
+            connection.Close();
             connection.Open();
             SqlDataReader reader = command.ExecuteReader();
             List<Pelicula> tempList = new List<Pelicula>();
             while (reader.Read())
             {
-                tempList.Add(new Pelicula(Convert.ToInt32(reader[0].ToString()), reader[1].ToString(), reader[2].ToString(),reader[3].ToString(), Convert.ToInt32(reader[4].ToString())));
+                tempList.Add(new Pelicula(Convert.ToInt32(reader[0].ToString()), reader[1].ToString(), reader[2].ToString(),reader[3].ToString(), Convert.ToInt32(reader[4].ToString()), Convert.ToInt32(reader[5].ToString())));
             }
             connection.Close();
             return tempList;
